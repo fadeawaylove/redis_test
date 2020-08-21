@@ -1,0 +1,14 @@
+version: '3'
+services:
+  app:
+    container_name: app-test
+    image: python:3.6-alpine
+    volumes:
+      - ./app.py:/root/app.py
+    command:
+      /bin/sh -c "pip3 install redis && python -u /root/app.py"
+networks:
+  default:
+    external:
+      name: redis_default
+
