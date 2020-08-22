@@ -1,0 +1,68 @@
+version: '3'
+services:
+  master:
+    image: redis
+    container_name: redis-master
+    command: redis-server --requirepass redis_pwd --masterauth redis_pwd
+    ports:
+      - 6380:6379
+  slave1:
+    image: redis
+    container_name: redis-slave-1
+    ports:
+      - 6381:6379
+    command: redis-server --slaveof redis-master 6379 --requirepass redis_pwd --masterauth redis_pwd
+  slave2:
+    image: redis
+    container_name: redis-slave-2
+    ports:
+      - 6382:6379
+    command: redis-server --slaveof redis-master 6379 --requirepass redis_pwd --masterauth redis_pwd
+  sentinel1:
+    image: redis
+    container_name: redis-sentinel-1
+    depends_on: 
+      - master
+      - slave1
+      - slave2
+    ports:
+      - 26379:26379
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    command: bash -c "cp /usr/local/etc/redis/sentinel.conf /usr/local/etc/redis/sentinel1.conf && redis-sentinel /usr/local/etc/redis/sentinel1.conf"
+  sentinel2:
+    image: redis
+    container_name: redis-sentinel-2
+    depends_on: 
+      - master
+      - slave1
+      - slave2
+    ports:
+      - 26380:26379
+    command: bash -c "cp /usr/local/etc/redis/sentinel.conf /usr/local/etc/redis/sentinel2.conf && redis-sentinel /usr/local/etc/redis/sentinel2.conf"
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+  sentinel3:
+    image: redis
+    container_name: redis-sentinel-3
+    depends_on: 
+      - master
+      - slave1
+      - slave2
+    ports:
+      - 26381:26379
+    command: bash -c "cp /usr/local/etc/redis/sentinel.conf /usr/local/etc/redis/sentinel3.conf && redis-sentinel /usr/local/etc/redis/sentinel3.conf"
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+  app:
+    container_name: app-test
+    image: python:3.6-alpine
+    depends_on: 
+      - sentinel1
+      - sentinel2
+      - sentinel3
+    volumes:
+      - ./app.py:/root/app.py
+    command:
+      /bin/sh -c "pip3 install redis && python -u /root/app.py"
+
