@@ -1,6 +1,5 @@
 """
 请求一个没有的数据，缓存会失效，库中也必定没有这个数据
-例如查询用户id<0的数据，一般系统中用户id都是大于0的，这样每次查询都穿透了缓存，直接到数据库全表扫描
 """
 import time
 import redis
@@ -14,7 +13,7 @@ def get_user_info(uid):
     if not user_info:
         user_info = query_user_info_from_mysql(uid)
         if not user_info:
-            client.set(key, "不存在", ex=60)
+            client.set(key, "None", ex=60)
     else:
         user_info = user_info.decode()
     return user_info
