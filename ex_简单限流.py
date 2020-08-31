@@ -13,7 +13,6 @@ def is_action_allowed(uid, action, period, count):
     key = "%s-%s" % (uid, action)
     now_ts = int(time.time() * 1000)
     action_count = client.zcount(key, now_ts - period, now_ts)
-    print(action_count)
     if action_count >= count:
         return False
     with client.pipeline() as pipe:
